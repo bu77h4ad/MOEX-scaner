@@ -1,0 +1,171 @@
+import json
+import time
+from sys import argv
+import requests
+import csv
+from bs4 import BeautifulSoup
+import requests
+import telebot
+
+
+'''
+MarkdownV2 style
+To use this mode, pass MarkdownV2 in the parse_mode field. Use the following syntax in your message:
+
+*bold \*text*
+_italic \*text_
+__underline__
+~strikethrough~
+*bold _italic bold ~italic bold strikethrough~ __underline italic bold___ bold*
+[inline URL](http://www.example.com/)
+[inline mention of a user](tg://user?id=123456789)
+`inline fixed-width code`
+```
+pre-formatted fixed-width code block
+```
+```python
+pre-formatted fixed-width code block written in the Python programming language
+```
+'''
+
+
+#Global Varibles
+freq = 4
+TF = '3600'
+if len(argv)==2:
+	TF = argv[1]
+#print(TF)
+urlBot     = "https://api.telegram.org/bot546038157:AAHZLzQbE-wNix_UWLTE-6vV_m5YfMB1Vpw/"
+user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36'
+proxy = {
+	#'https': '147.75.51.179:3128', # work
+	#'https': '104.248.50.126:3128' # work
+	#'https':'199.19.95.247:1080' 
+}
+
+#Functions
+def send_message( chat_id , text, parse_mode='MarkdownV2', disable_notification=False, disable_web_page_preview=True ):  
+    params = {
+    	'chat_id': chat_id, 
+    	'text': text, 
+    	'parse_mode': parse_mode, 
+    	'disable_notification': disable_notification, 
+    	'disable_web_page_preview':disable_web_page_preview
+    	}
+    response = requests.post(urlBot + 'sendMessage', data=params)
+    return response
+#send_message(375937375, "☑  TimeFrame: \#1Hour ")
+def send_photo(chat_id, photo, caption=None, disable_notification=False, reply_to_message_id=None, reply_markup=None, timeout=20, parse_mode=None, fileb=None, **kwargs):
+
+	params = {'chat_id':chat_id, 'photo':photo}
+	response = requests.post(urlBot + 'sendPhoto', data=params)
+	print(kwargs)
+	return response
+#send_photo(375937375,'https://node.finam.ru/imcf3.asp?id=81820&type=3&ma=1&maval=&freq=4&uf=1&indval=&cat=4&cai=14&v=&idxf=&curr=0&mar=1&gifta_mode=1')
+
+def getRSI( pair_id, period=TF ):
+	#	1h = period=3600 | 1d = 86400 | 1week = week
+	#	pairID=44465&period=18000&viewType=normal
+	header = {
+	'X-Requested-With': 'XMLHttpRequest',
+	'User-Agent': user_agent,
+	}
+	
+	params = {'pairID': pair_id, 'period': period, 'viewType': 'normal'}
+	response = requests.post('https://ru.investing.com/instruments/Service/GetTechincalData' , headers=header, data=params, proxies=proxy).content.decode() 
+	if response.find('406 Not Acceptable') != -1:
+		print ('406 Not Acceptable\n сайт забанил бота. Время менять IP')
+		send_message(375937375, "406 Not Acceptable\n сайт забанил бота. Время менять IP")
+		quit()
+
+	soup = BeautifulSoup(response, 'lxml')
+
+	soup = soup.findAll("table", { 'class':"genTbl closedTbl technicalIndicatorsTbl smallTbl float_lang_base_1" })[0]	# нашел таблицу с тех инфой
+
+	RSI =  float(soup.findAll("td")[1].text.replace(',','.'))	# спарсил RSI из таблицы
+	time.sleep(1)	
+	return RSI
+
+def getStock():
+	r = requests.get ( "https://ru.investing.com/indices/mcx-components", headers={'User-Agent': user_agent} ).content.decode() 	
+
+	#openIMOEX =  soup.findAll("div", { 'class':"bottom lighterGrayFont arial_11" })[0] # 	открыта ли биржа	
+	
+	if r.find(" - Закрыт. Цена в ") != -1:
+		print ( "\nБиржа закрыта, точнее сайт инвестинг не предоставляет котировки н данный момент")
+		send_message(375937375, "Биржа закрыта, точнее сайт инвестинг не предоставляет котировки н данный момент")
+		quit()
+	else:
+		print ( "\nБиржа открыта")	
+		send_message(375937375, "Биржа открыта")	
+	
+	
+	soup = BeautifulSoup(r, 'lxml')	
+	soup =  soup.findAll("table", { 'id':"cr1" })[0].findAll("tbody")[0] # парсим таблицу с акциями
+	#print(a.prettify())	
+	
+	tr = soup.findAll("tr")	# спарсил строки из таблицы
+	#print("\n\n\n\n tr -  ", tr[1].get('id'), "\n")	
+
+	names=[] 
+	titles = []
+	prices =[]
+	pair_ids = []
+	for i in range(0, len(tr)):
+		a =  tr[i].findAll("a",  { 'href':True, "title":True, 'target': False })[0] # спарсил ссылку
+		td = tr[i].findAll("td")[2] 												# спарсил цену
+		#print("\n <A> - ", a, "\n")
+		#print("\n <td> - ", td, "\n")
+
+		name = a.get('href').replace('/equities/','').split('?')[0]
+		title = a.text
+		price = td.text.replace('.',' ')
+		pair_id = tr[i].get('id').replace('pair_','')
+
+		print (name, title, price ,pair_id)
+
+		names.append(name)
+		titles.append(title)	
+		prices.append(price)
+		pair_ids.append(pair_id)	
+	return names, titles, prices, pair_ids
+
+#Body
+
+
+names, titles, prices, pair_ids = getStock()
+RSIs =[]
+targets=[]
+dict_finam =  {'yevroplan-pao':491359 , 'x5-retail-grp':491944, 'alrosa-ao':81820, 'aeroflot':29, 'vtb_rts':19043, "gazprom_rts":16842, "pik_rts":18654, "detskiy-mir-pao":473181,"inter-rao-ees_mm":20516, 
+		"lukoil_rts":8, "mvideo_rts":19737,"magnit_rts":17086,"sg-mechel_rts":21018, "moskovskiy-kreditnyi-bank-oao":420694, "mmk_rts":420694, "moskovskaya-birzha-oao":152798, "mts_rts":15523, 
+		"nlmk_rts":17046, "nmtp_rts":19629, "novatek_rts":17370, "gmk-noril-nickel_rts":795, "npk-ovk-pao":414560, "polymetal":175924, "polyus-zoloto_rts":17123, "ros-agro-plc":399716, "rosneft_rts":17273,
+		"rosseti-ao":20971, "rostelecom":7, "united-company-rusal-plc`":414279, "gidroogk-011d":20266, "ruspetro":465236, "sberbank_rts":3, "sberbank-p_rts":23, "severstal_rts":16136,
+		"afk-sistema_rts": 19715, "surgutneftegas_rts":4, "surgutneftegas-p_rts":13, "tatneft_rts": 825, "tatneft-p_rts": 826, "tmk":18441,"transneft-p_rts":1012,"phosagro":81114,
+		"fsk-ees_rts":20509, "e.on-russia":18584, "yandex":388383}
+
+for i in range(len(names)):
+
+	print(titles[i], prices[i] )
+	RSI = getRSI(pair_ids[i], TF)
+	RSIs.append(RSI)
+	print(RSI)
+
+	if  RSI < 30:
+		targets.append(i)		
+if TF=='3600':
+	TF   = '\#1Hour'
+	freq = '4'
+if TF=='86400':
+	TF   = '\#1Day'
+	freq = '5'
+post = '☑  TimeFrame: ' + TF + ' \n '
+
+for i in range(0,len(targets)) :		
+		post = post + '➥ '+ titles[targets[i]] + ': ' + prices[targets[i]] + 'р    RSI(14):'+ str(RSIs[targets[i]]) + '  '						
+		post = post + '[real_time](https://node.finam.ru/imcf3.asp?id='+ str(dict_finam[names[targets[i]]]) + '&type=3&ma=2&maval=14&freq=' + freq+ '&uf=1&indval=&cat=4&cai=14&v=&idxf=&curr=0&mar=1&gifta_mode=1) \n'
+
+if len(targets) != 0:
+	print ("Send message")
+	send_message(-1001185231809,  post )
+
+# 375937375 мой ид  ; -1001185231809 группа
