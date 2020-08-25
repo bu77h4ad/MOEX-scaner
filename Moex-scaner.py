@@ -1,3 +1,4 @@
+import proxy_parser
 import json
 import time
 from sys import argv
@@ -37,14 +38,16 @@ if len(argv)==2:
 #print(TF)
 urlBot     = "https://api.telegram.org/bot546038157:AAHZLzQbE-wNix_UWLTE-6vV_m5YfMB1Vpw/"
 user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36'
-proxy = {
-	#'https': '147.75.51.179:3128', # work
-	#'https': '104.248.50.126:3128' # work
-	#'https':'199.19.95.247:1080' 
+proxy123 = proxy_parser.proxy_parser() 
+proxy123.get_proxies('https',1)
+proxy_now = {
+	#'https': '206.221.176.130:3128' # work
+	#'https': '51.161.116.223:3128' # work
+	#'https':'157.245.222.183:80' 
 }
 
 #Functions
-def send_message( chat_id , text, parse_mode='MarkdownV2', disable_notification=False, disable_web_page_preview=True ):  
+def send_message( chat_id , text, parse_mode='Markdown', disable_notification=False, disable_web_page_preview=True ):  
     params = {
     	'chat_id': chat_id, 
     	'text': text, 
@@ -72,12 +75,30 @@ def getRSI( pair_id, period=TF ):
 	}
 	
 	params = {'pairID': pair_id, 'period': period, 'viewType': 'normal'}
-	response = requests.post('https://ru.investing.com/instruments/Service/GetTechincalData' , headers=header, data=params, proxies=proxy).content.decode() 
-	if response.find('406 Not Acceptable') != -1:
-		print ('406 Not Acceptable\n сайт забанил бота. Время менять IP')
-		send_message(375937375, "406 Not Acceptable\n сайт забанил бота. Время менять IP")
-		quit()
+	
+	#response = requests.post('https://ru.investing.com/instruments/Service/GetTechincalData' , headers=header, data=params, proxies=proxy_now).content.decode() 
+	while True:
+		try:
+			response = requests.post('https://ru.investing.com/instruments/Service/GetTechincalData' , headers=header, data=params, proxies=proxy_now).content.decode() 
+		except Exception:
+			alert= "Не удалось подключиться к сайту или что то пошло не так. текуший IP " + str(proxy_now)
+			print(alert)
+			send_message(375937375, alert)			
+			proxy_string = proxy123.next_proxy()
+			proxy_now.update({'https': proxy_string['ip']+ ':'+ proxy_string['port']})		
+			continue
 
+		if response.find('406 Not Acceptable') != -1:
+			alert = '406 Not Acceptable\tСайт забанил бота. Время менять IP. текуший IP '+ str(proxy_now)
+			print (alert)
+			send_message(375937375, alert)			
+			proxy_string = proxy123.next_proxy()
+			proxy_now.update({'https': proxy_string['ip']+ ':'+ proxy_string['port']}) 									
+			continue
+
+		break
+
+	print (proxy_now)
 	soup = BeautifulSoup(response, 'lxml')
 
 	soup = soup.findAll("table", { 'class':"genTbl closedTbl technicalIndicatorsTbl smallTbl float_lang_base_1" })[0]	# нашел таблицу с тех инфой
@@ -90,7 +111,7 @@ def getStock():
 	r = requests.get ( "https://ru.investing.com/indices/mcx-components", headers={'User-Agent': user_agent} ).content.decode() 	
 
 	#openIMOEX =  soup.findAll("div", { 'class':"bottom lighterGrayFont arial_11" })[0] # 	открыта ли биржа	
-	
+		
 	if r.find(" - Закрыт. Цена в ") != -1:
 		print ( "\nБиржа закрыта, точнее сайт инвестинг не предоставляет котировки н данный момент")
 		send_message(375937375, "Биржа закрыта, точнее сайт инвестинг не предоставляет котировки н данный момент")
@@ -98,7 +119,7 @@ def getStock():
 	else:
 		print ( "\nБиржа открыта")	
 		send_message(375937375, "Биржа открыта")	
-	
+		
 	
 	soup = BeautifulSoup(r, 'lxml')	
 	soup =  soup.findAll("table", { 'id':"cr1" })[0].findAll("tbody")[0] # парсим таблицу с акциями
@@ -153,19 +174,19 @@ for i in range(len(names)):
 	if  RSI < 30:
 		targets.append(i)		
 if TF=='3600':
-	TF   = '\#1Hour'
+	TF   = '#1Hour'
 	freq = '4'
 if TF=='86400':
-	TF   = '\#1Day'
+	TF   = '#1Day'
 	freq = '5'
-post = '☑  TimeFrame: ' + TF + ' \n '
+post = '☑  TimeFrame: ' + TF + ' \n'
 
 for i in range(0,len(targets)) :		
 		post = post + '➥ '+ titles[targets[i]] + ': ' + prices[targets[i]] + 'р    RSI(14):'+ str(RSIs[targets[i]]) + '  '						
 		post = post + '[real_time](https://node.finam.ru/imcf3.asp?id='+ str(dict_finam[names[targets[i]]]) + '&type=3&ma=2&maval=14&freq=' + freq+ '&uf=1&indval=&cat=4&cai=14&v=&idxf=&curr=0&mar=1&gifta_mode=1) \n'
 
 if len(targets) != 0:
-	print ("Send message")
-	send_message(-1001185231809,  post )
+	print ("Send message\n post", post)
+	print(send_message(-1001185231809,  post ).content)
 
 # 375937375 мой ид  ; -1001185231809 группа
