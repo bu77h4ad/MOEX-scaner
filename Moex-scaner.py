@@ -151,14 +151,14 @@ def getStock():
 		pair_ids.append(pair_id)	
 	return names, titles, prices, pair_ids
 
-#Body
+#BODY
 
 
 names, titles, prices, pair_ids = getStock()
 RSIs =[]
 targets=[]
 dict_finam =  {'yevroplan-pao':491359 , 'x5-retail-grp':491944, 'alrosa-ao':81820, 'aeroflot':29, 'vtb_rts':19043, "gazprom_rts":16842, "pik_rts":18654, "detskiy-mir-pao":473181,"inter-rao-ees_mm":20516, 
-		"lukoil_rts":8, "mvideo_rts":19737,"magnit_rts":17086,"sg-mechel_rts":21018, "moskovskiy-kreditnyi-bank-oao":420694, "mmk_rts":420694, "moskovskaya-birzha-oao":152798, "mts_rts":15523, 
+		"lukoil_rts":8, "mvideo_rts":19737,"magnit_rts":17086,"sg-mechel_rts":21018, "moskovskiy-kreditnyi-bank-oao":420694, "mmk_rts":16782, "moskovskaya-birzha-oao":152798, "mts_rts":15523, 
 		"nlmk_rts":17046, "nmtp_rts":19629, "novatek_rts":17370, "gmk-noril-nickel_rts":795, "npk-ovk-pao":414560, "polymetal":175924, "polyus-zoloto_rts":17123, "ros-agro-plc":399716, "rosneft_rts":17273,
 		"rosseti-ao":20971, "rostelecom":7, "united-company-rusal-plc`":414279, "gidroogk-011d":20266, "ruspetro":465236, "sberbank_rts":3, "sberbank-p_rts":23, "severstal_rts":16136,
 		"afk-sistema_rts": 19715, "surgutneftegas_rts":4, "surgutneftegas-p_rts":13, "tatneft_rts": 825, "tatneft-p_rts": 826, "tmk":18441,"transneft-p_rts":1012,"phosagro":81114,
@@ -182,8 +182,9 @@ if TF=='86400':
 post = '☑  TimeFrame: ' + TF + ' \n'
 
 for i in range(0,len(targets)) :		
-		post = post + '➥ '+ titles[targets[i]] + ': ' + prices[targets[i]] + 'р    RSI(14):'+ str(RSIs[targets[i]]) + '  '						
-		post = post + '[real_time](https://node.finam.ru/imcf3.asp?id='+ str(dict_finam[names[targets[i]]]) + '&type=3&ma=2&maval=14&freq=' + freq+ '&uf=1&indval=&cat=4&cai=14&v=&idxf=&curr=0&mar=1&gifta_mode=1) \n'
+		post = post + '➥ '+ titles[targets[i]] + ': ' + prices[targets[i]] + 'р    RSI(14):'+ str(RSIs[targets[i]]) + '  '		
+		if names[targets[i]] in dict_finam :	#Если такой ключ есть в словаре, то делаем ссылку на график	
+			post = post + '[real_time](https://node.finam.ru/imcf3.asp?id='+ str(dict_finam[names[targets[i]]]) + '&type=3&ma=2&maval=14&freq=' + freq+ '&uf=1&indval=&cat=4&cai=14&v=&idxf=&curr=0&mar=1&gifta_mode=1) \n'
 
 if len(targets) != 0:
 	print ("Send message\n post", post)
