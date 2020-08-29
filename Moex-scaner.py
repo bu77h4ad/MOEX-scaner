@@ -31,10 +31,14 @@ pre-formatted fixed-width code block written in the Python programming language
 
 
 #Global Varibles
-freq = 4
+freq = '4'
 TF = '3600'
-if len(argv)==2:
+non_stop = False
+if len(argv)>=2:
 	TF = argv[1]
+	print(TF)
+if len(argv)==3:
+	non_stop = argv[2]
 #print(TF)
 urlBot     = "https://api.telegram.org/bot546038157:AAHZLzQbE-wNix_UWLTE-6vV_m5YfMB1Vpw/"
 user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36'
@@ -73,7 +77,7 @@ def getRSI( pair_id, period=TF ):
 	'X-Requested-With': 'XMLHttpRequest',
 	'User-Agent': user_agent,
 	}
-	
+	print (period)
 	params = {'pairID': pair_id, 'period': period, 'viewType': 'normal'}
 	
 	#response = requests.post('https://ru.investing.com/instruments/Service/GetTechincalData' , headers=header, data=params, proxies=proxy_now).content.decode() 
@@ -104,21 +108,21 @@ def getRSI( pair_id, period=TF ):
 	soup = soup.findAll("table", { 'class':"genTbl closedTbl technicalIndicatorsTbl smallTbl float_lang_base_1" })[0]	# нашел таблицу с тех инфой
 
 	RSI =  float(soup.findAll("td")[1].text.replace(',','.'))	# спарсил RSI из таблицы
-	time.sleep(1)	
+	time.sleep(3)	
 	return RSI
 
 def getStock():
 	r = requests.get ( "https://ru.investing.com/indices/mcx-components", headers={'User-Agent': user_agent} ).content.decode() 	
 
 	#openIMOEX =  soup.findAll("div", { 'class':"bottom lighterGrayFont arial_11" })[0] # 	открыта ли биржа	
-		
-	if r.find(" - Закрыт. Цена в ") != -1:
-		print ( "\nБиржа закрыта, точнее сайт инвестинг не предоставляет котировки н данный момент")
-		send_message(375937375, "Биржа закрыта, точнее сайт инвестинг не предоставляет котировки н данный момент")
-		quit()
-	else:
-		print ( "\nБиржа открыта")	
-		send_message(375937375, "Биржа открыта")	
+	if non_stop != '-forse':
+		if r.find(" - Закрыт. Цена в ") != -1:
+			print ( "\nБиржа закрыта, точнее сайт инвестинг не предоставляет котировки н данный момент")
+			send_message(375937375, "Биржа закрыта, точнее сайт инвестинг не предоставляет котировки н данный момент")
+			quit()
+		else:
+			print ( "\nБиржа открыта")	
+			send_message(375937375, "Биржа открыта")	
 		
 	
 	soup = BeautifulSoup(r, 'lxml')	
@@ -179,6 +183,9 @@ if TF=='3600':
 if TF=='86400':
 	TF   = '#1Day'
 	freq = '5'
+if TF=='week':
+	TF   = '#1Week'
+	freq = '6'	
 post = '☑  TimeFrame: ' + TF + ' \n'
 
 for i in range(0,len(targets)) :		
@@ -189,5 +196,7 @@ for i in range(0,len(targets)) :
 if len(targets) != 0:
 	print ("Send message\n post", post)
 	print(send_message(-1001185231809,  post ).content)
-
+else:
+	print ("Send message\n нет перепроданностей")
+	send_message(375937375,  "нет перепроданностей" )
 # 375937375 мой ид  ; -1001185231809 группа
