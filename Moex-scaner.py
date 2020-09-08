@@ -34,11 +34,16 @@ pre-formatted fixed-width code block written in the Python programming language
 freq = '4'
 TF = '3600'
 non_stop = False
-if len(argv)>=2:
-	TF = argv[1]
-	print(TF)
-if len(argv)==3:
-	non_stop = argv[2]
+
+TFstring = ['3600','86400','week']
+for i in range(0,len(TFstring)):
+	if TFstring[i] in argv:
+		TF = TFstring[i]		
+
+if '-forse' in argv:
+	non_stop = '-forse'
+
+print(argv)
 #print(TF)
 urlBot     = "https://api.telegram.org/bot546038157:AAHZLzQbE-wNix_UWLTE-6vV_m5YfMB1Vpw/"
 user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36'
@@ -166,7 +171,7 @@ dict_finam =  {'yevroplan-pao':491359 , 'x5-retail-grp':491944, 'alrosa-ao':8182
 		"nlmk_rts":17046, "nmtp_rts":19629, "novatek_rts":17370, "gmk-noril-nickel_rts":795, "npk-ovk-pao":414560, "polymetal":175924, "polyus-zoloto_rts":17123, "ros-agro-plc":399716, "rosneft_rts":17273,
 		"rosseti-ao":20971, "rostelecom":7, "united-company-rusal-plc`":414279, "gidroogk-011d":20266, "ruspetro":465236, "sberbank_rts":3, "sberbank-p_rts":23, "severstal_rts":16136,
 		"afk-sistema_rts": 19715, "surgutneftegas_rts":4, "surgutneftegas-p_rts":13, "tatneft_rts": 825, "tatneft-p_rts": 826, "tmk":18441,"transneft-p_rts":1012,"phosagro":81114,
-		"fsk-ees_rts":20509, "e.on-russia":18584, "yandex":388383}
+		"fsk-ees_rts":20509, "e.on-russia":18584, "yandex":388383, "mcx":420450, "rtsi":420445}
 
 for i in range(len(names)):
 
@@ -189,7 +194,7 @@ if TF=='week':
 post = '☑  TimeFrame: ' + TF + ' \n'
 
 for i in range(0,len(targets)) :		
-		post = post + '➥ '+ titles[targets[i]] + ': ' + prices[targets[i]] + 'р    RSI(14):'+ str(RSIs[targets[i]]) + '  '		
+		post = post + '➥ '+ titles[targets[i]] + ': ' + prices[targets[i]] + 'р\n     RSI(14):'+ str(RSIs[targets[i]]) + '  '		
 		if names[targets[i]] in dict_finam :	#Если такой ключ есть в словаре, то делаем ссылку на график	
 			post = post + '[real_time](https://node.finam.ru/imcf3.asp?id='+ str(dict_finam[names[targets[i]]]) + '&type=3&ma=2&maval=14&freq=' + freq+ '&uf=1&indval=&cat=4&cai=14&v=&idxf=&curr=0&mar=1&gifta_mode=1) \n'
 
