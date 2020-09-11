@@ -207,7 +207,7 @@ if stocks == True:
 	names, titles, prices, pair_ids = getStockInIndices()
 	RSIs =[]
 	targets=[]
-	post = post + '\n#Акции'
+	
 	for i in range(0, len(names)):
 
 		print(titles[i], prices[i] )
@@ -217,7 +217,8 @@ if stocks == True:
 
 		if  RSI < 30:
 			targets.append(i)
-
+	if len(targets) != 0 :
+		post = post + '\n#Акции'
 	for i in range(0,len(targets)) :		
 			post = post + '\n   ['+ titles[targets[i]] + '](https://node.finam.ru/imcf3.asp?id='+ str(dict_finam[names[targets[i]]]) + '&type=3&ma=2&maval=14&freq=' + freq+ '&uf=1&indval=&cat=4&cai=14&v=&idxf=&curr=0&mar=1&gifta_mode=1): ' + prices[targets[i]] + 'р   rsi:'+ str(RSIs[targets[i]]) + '  '		
 			#if names[targets[i]] in dict_finam :	#Если такой ключ есть в словаре, то делаем ссылку на график	
@@ -225,7 +226,7 @@ if stocks == True:
 
 	if len(targets) != 0:
 		print ("Send message\n post", post)
-		print(send_message(-1001185231809 ,  post ).content)
+		#print(send_message(375937375 ,  post ).content)
 	else:
 		print ("Send message\n нет перепроданностей")
 		send_message(375937375,  "нет перепроданностей" )
@@ -243,7 +244,7 @@ if indices == True:
 
 		post = post + '\n   [' +IDX['title']+ '](https://node.finam.ru/imcf3.asp?id='+ str(dict_finam[indexArray[i]]) + '&type=3&ma=2&maval=14&freq=' + freq+ '&uf=1&indval=&cat=4&cai=14&v=&idxf=&curr=0&mar=1&gifta_mode=1): ' +IDX['price']+ '   rsi:' + str( getRSI(IDX['pair_id']) )
 		
-	print(send_message(-1001185231809 ,  post ).content)
+print(send_message(-1001185231809 ,  post ).content)
 	#post = post + '[real_time](https://node.finam.ru/imcf3.asp?id='+ str(dict_finam['mcx']) + '&type=3&ma=2&maval=14&freq=' + freq+ '&uf=1&indval=&cat=4&cai=14&v=&idxf=&curr=0&mar=1&gifta_mode=1) \n'
 
 # 375937375 мой ид  ; -1001185231809 группа
