@@ -32,17 +32,24 @@ pre-formatted fixed-width code block written in the Python programming language
 
 #Global Varibles
 freq = '4'
+TFtitle = '3600'
 TF = '3600'
-non_stop = False
-
+forse   = False
+indices = False
+stocks  = False
 TFstring = ['3600','86400','week']
 for i in range(0,len(TFstring)):
 	if TFstring[i] in argv:
 		TF = TFstring[i]		
 
 if '-forse' in argv:
-	non_stop = '-forse'
+	forse = True
 
+if '-indices' in argv:
+	indices = True
+
+if '-stocks' in argv:
+	stocks = True
 print(argv)
 #print(TF)
 urlBot     = "https://api.telegram.org/bot546038157:AAHZLzQbE-wNix_UWLTE-6vV_m5YfMB1Vpw/"
@@ -112,15 +119,15 @@ def getRSI( pair_id, period=TF ):
 
 	soup = soup.findAll("table", { 'class':"genTbl closedTbl technicalIndicatorsTbl smallTbl float_lang_base_1" })[0]	# нашел таблицу с тех инфой
 
-	RSI =  float(soup.findAll("td")[1].text.replace(',','.'))	# спарсил RSI из таблицы
+	RSI =  float(soup.findAll("td")[1].text.replace(',','.').strip())	# спарсил RSI из таблицы
 	time.sleep(3)	
-	return RSI
+	return round(RSI)
 
-def getStockInIndex(IDX = "https://ru.investing.com/indices/mcx-components"):
+def getStockInIndices(IDX = "https://ru.investing.com/indices/mcx-components"):
 	r = requests.get ( IDX, headers={'User-Agent': user_agent} ).content.decode() 	
 
 	#openIMOEX =  soup.findAll("div", { 'class':"bottom lighterGrayFont arial_11" })[0] # 	открыта ли биржа	
-	if non_stop != '-forse':
+	if forse != True:
 		if r.find(" - Закрыт. Цена в ") != -1:
 			print ( "\nБиржа закрыта, точнее сайт инвестинг не предоставляет котировки н данный момент")
 			send_message(375937375, "Биржа закрыта, точнее сайт инвестинг не предоставляет котировки н данный момент")
@@ -161,23 +168,23 @@ def getStockInIndex(IDX = "https://ru.investing.com/indices/mcx-components"):
 	return names, titles, prices, pair_ids
 
 def getIndex( name = 'mcx'):
-	r = requests.get ( 'https://ru.investing.com/indices/'+name+'-technical', headers={'User-Agent': user_agent} ).content.decode('UTF-8') 	
-	soup = BeautifulSoup(r, 'lxml')	
-	title =  soup.findAll("h1", { 'class':"float_lang_base_1 relativeAttr" })[0] # тайтл парсинг
+	dictionary={}
+	r = requests.get ( 'https://ru.investing.com/indices/'+name, headers={'User-Agent': user_agent} ).content.decode('UTF-8') 	
+	soup = BeautifulSoup(r, 'lxml')		
+	title =  soup.findAll("h1", { 'class':"float_lang_base_1 relativeAttr" })[0].text.strip() # тайтл парсинг
 	string =  soup.findAll("div", { 'class':"top bold inlineblock" })[0].text.strip().replace('.',' ').replace(',','.').split('\n')	
 	price = string[0]
 	percent1day = string[-1]
+	pair_id =  soup.findAll("div", { 'class':"headBtnWrapper float_lang_base_2 js-add-alert-widget" })[0].get('data-pair-id')
 
-	rsi =  float(soup.findAll("table", { 'class':"genTbl closedTbl technicalIndicatorsTbl smallTbl float_lang_base_1" })[0].findAll("td")[1].text.replace(',','.'))	# спарсил RSI из таблицы
-	time.sleep(3)
-	print (title.text, price, percent1day, rsi)
-	return title.text, price, percent1day, rsi
+	dictionary.update( { 'title':title, 'price':price , 'percent1day': percent1day, 'pair_id':pair_id } )
+
+	
+	time.sleep(3)	
+	return dictionary
+
 #BODY
 
-
-names, titles, prices, pair_ids = getStockInIndex()
-RSIs =[]
-targets=[]
 dict_finam =  { "mcx":420450, "rtsi":420445, 'yevroplan-pao':491359 , 'x5-retail-grp':491944, 'alrosa-ao':81820, 'aeroflot':29, 'vtb_rts':19043, "gazprom_rts":16842, "pik_rts":18654, "detskiy-mir-pao":473181,"inter-rao-ees_mm":20516, 
 		"lukoil_rts":8, "mvideo_rts":19737,"magnit_rts":17086,"sg-mechel_rts":21018, "moskovskiy-kreditnyi-bank-oao":420694, "mmk_rts":16782, "moskovskaya-birzha-oao":152798, "mts_rts":15523, 
 		"nlmk_rts":17046, "nmtp_rts":19629, "novatek_rts":17370, "gmk-noril-nickel_rts":795, "npk-ovk-pao":414560, "polymetal":175924, "polyus-zoloto_rts":17123, "ros-agro-plc":399716, "rosneft_rts":17273,
@@ -185,40 +192,58 @@ dict_finam =  { "mcx":420450, "rtsi":420445, 'yevroplan-pao':491359 , 'x5-retail
 		"afk-sistema_rts": 19715, "surgutneftegas_rts":4, "surgutneftegas-p_rts":13, "tatneft_rts": 825, "tatneft-p_rts": 826, "tmk":18441,"transneft-p_rts":1012,"phosagro":81114,
 		"fsk-ees_rts":20509, "e.on-russia":18584, "yandex":388383}
 
-for i in range(len(names)):
-
-	print(titles[i], prices[i] )
-	RSI = getRSI(pair_ids[i], TF)
-	RSIs.append(RSI)
-	print(RSI)
-
-	if  RSI < 30:
-		targets.append(i)
-
 if TF=='3600':
-	TF   = '#1Hour'
+	TFtitle   = '#1Hour'
 	freq = '4'
 if TF=='86400':
-	TF   = '#1Day'
+	TFtitle   = '#1Day'
 	freq = '5'
 if TF=='week':
-	TF   = '#1Week'
+	TFtitle   = '#1Week'
 	freq = '6'	
-post = '☑  TimeFrame: ' + TF + ' \n'
+post = '☑  TimeFrame: ' + TFtitle + ' '
 
-for i in range(0,len(targets)) :		
-		post = post + '➥ '+ titles[targets[i]] + ': ' + prices[targets[i]] + 'р\n     RSI(14):'+ str(RSIs[targets[i]]) + '  '		
-		if names[targets[i]] in dict_finam :	#Если такой ключ есть в словаре, то делаем ссылку на график	
-			post = post + '[real_time](https://node.finam.ru/imcf3.asp?id='+ str(dict_finam[names[targets[i]]]) + '&type=3&ma=2&maval=14&freq=' + freq+ '&uf=1&indval=&cat=4&cai=14&v=&idxf=&curr=0&mar=1&gifta_mode=1) \n'
-indexArray=['mcx','rtsi']
-#title, price, percent1day, rsi  = getIndex('mcx')
-#post = post + '\n'
-#post = post + '[real_time](https://node.finam.ru/imcf3.asp?id='+ str(dict_finam['mcx']) + '&type=3&ma=2&maval=14&freq=' + freq+ '&uf=1&indval=&cat=4&cai=14&v=&idxf=&curr=0&mar=1&gifta_mode=1) \n'
+if stocks == True:
+	names, titles, prices, pair_ids = getStockInIndices()
+	RSIs =[]
+	targets=[]
+	post = post + '\n#Акции'
+	for i in range(0, len(names)):
 
-if len(targets) != 0:
-	print ("Send message\n post", post)
-	print(send_message(-1001185231809,  post ).content)
-else:
-	print ("Send message\n нет перепроданностей")
-	send_message(375937375,  "нет перепроданностей" )
+		print(titles[i], prices[i] )
+		RSI = getRSI(pair_ids[i], TF)
+		RSIs.append(RSI)
+		print(RSI)
+
+		if  RSI < 30:
+			targets.append(i)
+
+	for i in range(0,len(targets)) :		
+			post = post + '\n   ['+ titles[targets[i]] + '](https://node.finam.ru/imcf3.asp?id='+ str(dict_finam[names[targets[i]]]) + '&type=3&ma=2&maval=14&freq=' + freq+ '&uf=1&indval=&cat=4&cai=14&v=&idxf=&curr=0&mar=1&gifta_mode=1): ' + prices[targets[i]] + 'р   rsi:'+ str(RSIs[targets[i]]) + '  '		
+			#if names[targets[i]] in dict_finam :	#Если такой ключ есть в словаре, то делаем ссылку на график	
+			#	post = post + '[real_time](https://node.finam.ru/imcf3.asp?id='+ str(dict_finam[names[targets[i]]]) + '&type=3&ma=2&maval=14&freq=' + freq+ '&uf=1&indval=&cat=4&cai=14&v=&idxf=&curr=0&mar=1&gifta_mode=1) '
+
+	if len(targets) != 0:
+		print ("Send message\n post", post)
+		print(send_message(-1001185231809 ,  post ).content)
+	else:
+		print ("Send message\n нет перепроданностей")
+		send_message(375937375,  "нет перепроданностей" )
+
+if indices == True:
+	indexArray=['mcx','rtsi'] #13666 13665 - PTS
+	#title, price, percent1day = 
+	post = post + '\n#Индексы'
+	for i in range(0,len(indexArray)):
+		IDX  = getIndex(indexArray[i])	
+		if IDX['pair_id'] == "13666":
+			IDX['title'] = 'ММВБ'
+		if IDX['pair_id'] == "13665":
+			IDX['title'] = 'РТС'
+
+		post = post + '\n   [' +IDX['title']+ '](https://node.finam.ru/imcf3.asp?id='+ str(dict_finam[indexArray[i]]) + '&type=3&ma=2&maval=14&freq=' + freq+ '&uf=1&indval=&cat=4&cai=14&v=&idxf=&curr=0&mar=1&gifta_mode=1): ' +IDX['price']+ '   rsi:' + str( getRSI(IDX['pair_id']) )
+		
+	print(send_message(-1001185231809 ,  post ).content)
+	#post = post + '[real_time](https://node.finam.ru/imcf3.asp?id='+ str(dict_finam['mcx']) + '&type=3&ma=2&maval=14&freq=' + freq+ '&uf=1&indval=&cat=4&cai=14&v=&idxf=&curr=0&mar=1&gifta_mode=1) \n'
+
 # 375937375 мой ид  ; -1001185231809 группа
