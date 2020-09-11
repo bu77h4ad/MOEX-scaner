@@ -27,8 +27,8 @@ crontab -l
 # For more information see the manual pages of crontab(5) and cron(8)
 #
 # m h day_Of_Mon mon dow   command
-1 * * * 1-5 python3 ~/parser2.py 3600
-1 9 * * 1-5   python3 ~/parser2.py 86400 -forse
-0 18 * * 7 python3 ~/parser2.py week -forse
+#1 * * * 1-5 python3 ~/parser2.py 3600
+1 8 * * 1-5   python3 ~/parser2.py -forse -indices -stocks 86400
+0 18 * * 7 python3 ~/parser2.py -forse -indices -stocks week
 
 ```
