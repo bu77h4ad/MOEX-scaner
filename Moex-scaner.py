@@ -37,6 +37,8 @@ TF = '3600'
 forse   = False
 indices = False
 stocks  = False
+disable_notification = False
+
 TFstring = ['3600','86400','week']
 for i in range(0,len(TFstring)):
 	if TFstring[i] in argv:
@@ -50,6 +52,10 @@ if '-indices' in argv:
 
 if '-stocks' in argv:
 	stocks = True
+
+if '-disable_notification' in argv:
+	disable_notification = True
+
 print(argv)
 #print(TF)
 urlBot     = "https://api.telegram.org/bot546038157:AAHZLzQbE-wNix_UWLTE-6vV_m5YfMB1Vpw/"
@@ -63,7 +69,7 @@ proxy_now = {
 }
 
 #Functions
-def send_message( chat_id , text, parse_mode='Markdown', disable_notification=False, disable_web_page_preview=True ):  
+def send_message( chat_id , text, parse_mode='Markdown', disable_notification=disable_notification, disable_web_page_preview=True ):  
     params = {
     	'chat_id': chat_id, 
     	'text': text, 
