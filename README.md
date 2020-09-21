@@ -5,6 +5,7 @@
 
 crontab -l
 ```python 
+
 # Edit this file to introduce tasks to be run by cron.
 #
 # Each task to run has to be defined through a single line
@@ -26,9 +27,9 @@ crontab -l
 #
 # For more information see the manual pages of crontab(5) and cron(8)
 #
-# m h day_Of_Mon mon dow   command
+# m h  dom mon dow   command
 #1 * * * 1-5 python3 ~/parser2.py 3600
-1 8 * * 1-5   python3 ~/parser2.py -forse -indices -stocks 86400
+1 0 * * 1-5   python3 ~/parser2.py -forse -indices -stocks 86400 -disable_notification
 0 18 * * 7 python3 ~/parser2.py -forse -indices -stocks week
 
 ```
