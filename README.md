@@ -29,7 +29,8 @@ crontab -l
 #
 # m h  dom mon dow   command
 #1 * * * 1-5 python3 ~/parser2.py 3600
-1 0 * * 1-5   python3 ~/parser2.py -forse -indices -stocks 86400 -disable_notification
-0 18 * * 7 python3 ~/parser2.py -forse -indices -stocks week
+1 0 * * 1-5 python3 ~/moex-scaner.py -forse -indices -stocks 86400 -disable_notification
+0 18 * * 7 python3 ~/moex-scaner.py -forse -indices -stocks week
+
 
 ```
