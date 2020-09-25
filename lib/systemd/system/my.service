@@ -1,0 +1,14 @@
+
+[Unit]
+Description=Dummy Service
+After=multi-user.target
+Conflicts=getty@tty1.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /home/butthead/moex-ram.py
+StandardInput=tty-force
+User=butthead
+
+[Install]
+WantedBy=multi-user.target
