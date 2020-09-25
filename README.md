@@ -34,3 +34,10 @@ crontab -l
 
 
 ```
+команды для запуска демона
+```
+sudo chmod 664 /lib/systemd/system/my.service
+sudo systemctl daemon-reload
+sudo systemctl reenable my.service
+sudo systemctl status my.service
+```
