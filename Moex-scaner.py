@@ -69,13 +69,14 @@ proxy_now = {
 }
 
 #Functions
-def send_message( chat_id , text, parse_mode='Markdown', disable_notification=disable_notification, disable_web_page_preview=True ):  
+def send_message( chat_id , text, parse_mode='Markdown', disable_notification=disable_notification, disable_web_page_preview=True, reply_markup=False ):  
     params = {
     	'chat_id': chat_id, 
     	'text': text, 
     	'parse_mode': parse_mode, 
     	'disable_notification': disable_notification, 
-    	'disable_web_page_preview':disable_web_page_preview
+    	'disable_web_page_preview':disable_web_page_preview,
+    	'reply_markup':'{"inline_keyboard": [[{"text": "\u2764\ufe0f", "callback_data": "+1"}]]}' #🤍
     	}
     response = requests.post(urlBot + 'sendMessage', data=params)
     return response
@@ -219,8 +220,11 @@ if indices == True:
 			IDX['title'] = 'ММВБ'
 		if IDX['pair_id'] == "13665":
 			IDX['title'] = 'РТС'
+		percent1day = ''
+		if TF=='86400':
+			percent1day = ' (' + IDX['percent1day']+ ')'
 
-		post = post + '\n   [' +IDX['title']+ '](https://node.finam.ru/imcf3.asp?id='+ str(dict_finam[indexArray[i]]) + '&type=3&ma=2&maval=14&freq=' + freq+ '&uf=1&indval=&cat=4&cai=14&v=&idxf=&curr=0&mar=1&gifta_mode=1): ' +IDX['price']+ '   rsi:' + str( getRSI(IDX['pair_id']) )
+		post = post + '\n   [' +IDX['title']+ '](https://node.finam.ru/imcf3.asp?id='+ str(dict_finam[indexArray[i]]) + '&type=3&ma=2&maval=14&freq=' + freq+ '&uf=1&indval=&cat=4&cai=14&v=&idxf=&curr=0&mar=1&gifta_mode=1): ' +IDX['price']+ percent1day+' rsi:' + str( getRSI(IDX['pair_id']) ) +""
 
 if stocks == True:
 	names, titles, prices, pair_ids = getStockInIndices()
@@ -254,11 +258,11 @@ if stocks == True:
 		#print(send_message(375937375 ,  post ).content)
 	else:
 		print ("Send message\n нет перепроданностей")
-		send_message(375937375,  "нет перепроданностей" )
+		send_message(-1001185231809,  "нет перепроданностей" )
 
 		
 if '\n' in post : #Если в посте есть что то кроме шапки то отправляем смс
-	print(send_message(-1001185231809 ,  post ).content)
+	print(send_message(375937375 ,  post ).content)
 	#post = post + '[real_time](https://node.finam.ru/imcf3.asp?id='+ str(dict_finam['mcx']) + '&type=3&ma=2&maval=14&freq=' + freq+ '&uf=1&indval=&cat=4&cai=14&v=&idxf=&curr=0&mar=1&gifta_mode=1) \n'
 
 # 375937375 мой ид  ; -1001185231809 группа
