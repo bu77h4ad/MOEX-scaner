@@ -9,6 +9,7 @@ Type=simple
 ExecStart=/usr/bin/python3 /home/butthead/moex-ram.py
 StandardInput=tty-force
 User=butthead
+Restart=always
 
 [Install]
 WantedBy=multi-user.target
